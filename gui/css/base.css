@@ -1,0 +1,39 @@
+h1{
+    color: white;
+    line-height:0.7em;
+    text-align: center;
+    font-family: 'Courier New', 'monospace';
+  }
+body{
+  background-color: #659DBD;
+  font-family: 'Courier New', 'monospace';
+  color: white;
+  position: absolute;
+  top: 5%;
+  left: 0;
+  right: 0;
+  margin-top: -4px;
+}
+
+.item-row {
+  border-bottom: 1px solid #ccc;
+  padding: 10px;
+}
+
+.item-image {
+  max-width: 100px;
+}
+
+.progress {
+  height: 20px;
+  text-align: center;
+  background-color:azure;
+  color:black;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
