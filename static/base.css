@@ -5,7 +5,7 @@ h1{
     font-family: 'Courier New', 'monospace';
   }
 body{
-  background-color: #659DBD;
+  background-color: #AED9E0;
   font-family: 'Courier New', 'monospace';
   color: white;
   position: absolute;
@@ -27,9 +27,11 @@ body{
 .progress {
   height: 20px;
   text-align: center;
-  background-color:azure;
+  background-color:#FF6B6B;
   color:black;
 }
+
+progress::-webkit-progress-value { background: #FF6B6B; color:black; }
 
 .center {
   display: flex;

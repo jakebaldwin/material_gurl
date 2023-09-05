@@ -1,19 +1,22 @@
-import eel, ctypes, sqlite3
+from flask import Flask, render_template, request, jsonify
+import sqlite3
 
-eel.init('gui/')
+app = Flask(__name__)
 
-conn = sqlite3.connect('./material_db.db')
-cursor = conn.cursor()
+@app.route('/')
+def index():
+    return render_template('base.html')
 
-@eel.expose
-def save_item_to_db(item):
-    # item.name, item.link, item.price, item.dateAdded, item.active, item.savedAmount
+@app.route('/save_item_to_db', methods=['POST'])
+def save_item_to_db():
     try:
+        conn = sqlite3.connect('./material_db.db')
+        cursor = conn.cursor()
+        item = request.get_json()
         # Define the SQL command to create the table
         create_table_sql = """
         CREATE TABLE IF NOT EXISTS items (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
+        name TEXT PRIMARY KEY,
         link TEXT,
         image TEXT,
         price REAL,
@@ -22,15 +25,13 @@ def save_item_to_db(item):
         active BOOLEAN
         );
         """
-
         # Execute the SQL command to create the table
         cursor.execute(create_table_sql)
 
-
         # Define your SQL INSERT query here
         insert_query = """
-        INSERT INTO items (name, link, image, price, dateAdded, savedAmount, active)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO items (name, link, image, price, dateAdded, savedAmount, active)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         """
 
         # Define the values as a tuple
@@ -47,63 +48,60 @@ def save_item_to_db(item):
         # Execute the SQL command with the parameterized query
         cursor.execute(insert_query, values)
         conn.commit()
-        return True
+        return jsonify(success=True)
     except Exception as e:
         print(f"Error saving item: {e}")
-        return False
+        return jsonify(success=False)
 
-@eel.expose
+@app.route('/load_items_from_db', methods=['GET'])
 def load_items_from_db():
     try:
+        conn = sqlite3.connect('./material_db.db')
+        cursor = conn.cursor()
         # Define your SQL SELECT query here
         query = "SELECT * FROM items"
         cursor.execute(query)
         items = cursor.fetchall()
         toReturn = []
         for item in items:
-            t = {}
-            
-            t['name'] = item[1]
-            t['link'] = item[2]
-            t['image'] = item[3]
-            t['price'] = item[4]
-            t['dateAdded'] = item[5]
-            t['savedAmount'] = item[6]
-            t['active'] = (item[7] == 1)
-            
+            t = {
+                'name': item[0],
+                'link': item[1],
+                'image': item[2],
+                'price': item[3],
+                'dateAdded': item[4],
+                'savedAmount': item[5],
+                'active': (item[6] == 1)
+            }
             toReturn.append(t)
-        return toReturn
+        return jsonify(items=toReturn)
     except Exception as e:
         print(f"Error loading items: {e}")
-        return []
+        return jsonify(items=[])
 
-@eel.expose
-def remove_item_from_db(item):
+@app.route('/remove_item_from_db', methods=['POST'])
+def remove_item_from_db():
     try:
-        # Create a cursor
+        conn = sqlite3.connect('./material_db.db')
         cursor = conn.cursor()
-        
+        item = request.get_json()
         # Define SQL command to delete the item based on matching name and price
         delete_query = "DELETE FROM items WHERE name = ? AND price = ?"
-        
+
         # Extract the name and price from the item dictionary
         item_name = item['name']
         item_price = item['price']
-        
+
         # Execute the SQL command
         cursor.execute(delete_query, (item_name, item_price))
-        
+
         # Commit the transaction
         conn.commit()
-        
-        return True  # Success
 
+        return jsonify(success=True)  # Success
     except Exception as e:
         print(f"Error removing item: {e}")
-        return False  # Error occurred
+        return jsonify(success=False)  # Error occurred
 
-
-# Start the index.html file
-eel.start('src/base.html',
-    jinja_templates='src')
-
+if __name__ == '__main__':
+    app.run()

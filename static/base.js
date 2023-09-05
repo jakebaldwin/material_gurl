@@ -1,7 +1,4 @@
-// script.js
-
-document.addEventListener("DOMContentLoaded", function() {
-
+document.addEventListener("DOMContentLoaded", function () {
     // Sample list of items (you can replace this with your own data)
     let items = [];
 
@@ -19,7 +16,7 @@ document.addEventListener("DOMContentLoaded", function() {
         } else {
             addItemForm.style.display = "none";
         }
-        
+
         // Ensure there is an active button before calling toggleItems
         const activeButton = document.querySelector(".active-button.active");
         if (activeButton) {
@@ -40,19 +37,18 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // Function to toggle between "Active" and "Purchased" items
-    function toggleItems(active, saveToDB=true) {
+    async function toggleItems(active, saveToDB = true) {
         const itemList = document.getElementById("itemList");
 
         itemList.innerHTML = ""; // Clear the item list
 
         const filteredItems = items.filter(item => active === item.active);
 
-        filteredItems.forEach(item => {
-            if (saveToDB) 
-            {
-                addItemToDB(item);
+        for (const item of filteredItems) {
+            if (saveToDB) {
+                await addItemToDB(item);
             }
-            
+
             const itemRow = document.createElement("div");
             itemRow.className = "item-row row";
 
@@ -83,11 +79,11 @@ document.addEventListener("DOMContentLoaded", function() {
             const percentage = (item.savedAmount / item.price) * 100;
             const progressBar = document.createElement("div");
             progressBar.classList.add("progress-bar");
-            progressBar.innerText = Math.round(percentage);
+            progressBar.innerText = `${Math.round(percentage)}% a.k.a. ${item.savedAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}`;
             progressBar.style.width = `${percentage}%`;
 
             progress.appendChild(progressBar);
-            
+
             itemDetails.appendChild(itemName);
             itemDetails.appendChild(itemLink);
             itemDetails.appendChild(itemPrice);
@@ -111,18 +107,18 @@ document.addEventListener("DOMContentLoaded", function() {
             deleteButton.className = "btn btn-danger";
             deleteButton.innerText = "Delete";
             deleteButton.addEventListener("click", () => {
-            // Find the index of the item in the array
-            const index = items.indexOf(item);
-            
-            if (index !== -1) {
-                // Remove the item from the array
-                items.splice(index, 1);
+                // Find the index of the item in the array
+                const index = items.indexOf(item);
 
-                removeItemFromDB(item);
-                
-                // Regenerate the item list
-                toggleItems(true, false); // or pass false to show purchased items
-            }
+                if (index !== -1) {
+                    // Remove the item from the array
+                    items.splice(index, 1);
+
+                    removeItemFromDB(item);
+
+                    // Regenerate the item list
+                    toggleItems(true, false); // or pass false to show purchased items
+                }
             });
 
             // Create an "Update Saved Amount" button
@@ -130,13 +126,14 @@ document.addEventListener("DOMContentLoaded", function() {
             updateButton.className = "btn btn-info";
             updateButton.innerText = "Update Saved Amount";
             updateButton.addEventListener("click", () => {
-            const newSavedAmount = parseFloat(prompt("Enter the new saved amount:"));
-            if (!isNaN(newSavedAmount)) {
-                item.savedAmount = newSavedAmount;
-                const newPercentage = (item.savedAmount / item.price) * 100;
-                progressBar.style.width = `${newPercentage}%`;
-                progressBar.innerText = `${Math.round(newPercentage)}% out of ${item.price}`;
-            }
+                const newSavedAmount = parseFloat(prompt("Enter the new saved amount:"));
+                if (!isNaN(newSavedAmount)) {
+                    item.savedAmount = newSavedAmount;
+                    const newPercentage = (item.savedAmount / item.price) * 100;
+                    progressBar.style.width = `${newPercentage}%`;
+                    progressBar.innerText = `${Math.round(newPercentage)}% a.k.a. ${item.savedAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}`;
+                }
+                addItemToDB(item);
             });
 
             // Append buttons to the button container
@@ -149,14 +146,15 @@ document.addEventListener("DOMContentLoaded", function() {
             itemRow.appendChild(buttonContainer);
 
             itemList.appendChild(itemRow);
-        });
+        }
     }
-
 
     // Function to toggle the status of an item (purchased or still active)
     function toggleItemStatus(item) {
         item.active = !item.active;
-        toggleItems(document.querySelector(".active-button.active").getAttribute("data-active") === "true", false); // Refresh the list after moving an item
+        console.log('clicked!');
+        toggleItems(document.querySelector(".active-button.active").getAttribute("data-active") === "true"); // Refresh the list after moving an item
+        addItemToDB(item);
     }
 
     // Function to update the label of the move button based on the item's status
@@ -179,7 +177,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     // Event listener for the "Add Item" form
-    document.getElementById("addItemForm").addEventListener("submit", function(event) {
+    document.getElementById("addItemForm").addEventListener("submit", async function (event) {
         event.preventDefault();
 
         // Get form values and populate today's date
@@ -206,24 +204,32 @@ document.addEventListener("DOMContentLoaded", function() {
         document.getElementById("addItemForm").style.display = "none";
     });
 
-
     async function removeItemFromDB(item) {
+        const response = await fetch("/remove_item_from_db", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(item),
+        });
 
-        //item.name, item.link, item.price, item.dateAdded, item.active, item.savedAmount
-        const result = await eel.remove_item_from_db(item)();
-        if (result) {
+        if (response.ok) {
             alert("Item deleted from the database.");
         } else {
-            alert("Failed to save item to the database.");
+            alert("Failed to delete item from the database.");
         }
     }
 
-
-
     async function addItemToDB(item) {
+        const response = await fetch("/save_item_to_db", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(item),
+        });
 
-        const result = await eel.save_item_to_db(item)();
-        if (result) {
+        if (response.ok) {
             alert("Item saved to the database.");
         } else {
             alert("Failed to save item to the database.");
@@ -231,16 +237,17 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     async function loadItemsFromDB() {
-        resp = await eel.load_items_from_db()();
-        for(i = 0; i < resp.length; i++)
-        {
-            items.push(resp[i]);
+        const response = await fetch("/load_items_from_db");
+
+        if (response.ok) {
+            const data = await response.json();
+            items = data.items || [];
+            // Initial call to populate the list
+            toggleItems(true, false);
+        } else {
+            console.error("Failed to load items from the database.");
         }
-        // Initial call to populate the list
-        toggleItems(true, false);
     }
 
-    loadItemsFromDB()
+    loadItemsFromDB();
 });
-
-
