@@ -2,6 +2,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // Sample list of items (you can replace this with your own data)
     let items = [];
 
+    let categories = new Set();
+
     // Default the "Active" button to be active
     const defaultActiveButton = document.querySelector(".active-button[data-active='true']");
     if (defaultActiveButton) {
@@ -17,14 +19,6 @@ document.addEventListener("DOMContentLoaded", function () {
             addItemForm.style.display = "none";
         }
 
-        // Ensure there is an active button before calling toggleItems
-        const activeButton = document.querySelector(".active-button.active");
-        if (activeButton) {
-            toggleItems(activeButton.getAttribute("data-active") === "true");
-        } else {
-            // If no active button is found, default to showing "Active" items
-            toggleItems(true);
-        }
     });
 
     // Function to populate today's date in the format "YYYY-MM-DD"
@@ -39,14 +33,38 @@ document.addEventListener("DOMContentLoaded", function () {
     // Function to toggle between "Active" and "Purchased" items
     async function toggleItems(active, saveToDB = true) {
         const itemList = document.getElementById("itemList");
+        const tabContainer = document.getElementById("tabContainer");
 
         itemList.innerHTML = ""; // Clear the item list
+        tabContainer.innerHTML = "";
+        categories.clear()
 
         const filteredItems = items.filter(item => active === item.active);
 
         for (const item of filteredItems) {
             if (saveToDB) {
                 await addItemToDB(item);
+            }
+
+            const category = item.category;
+            let categoryContainer;
+            if (categories.has(category))
+            {
+                categoryContainer = document.getElementById(category);
+            }
+            else
+            {
+                categories.add(category);
+                categoryContainer = document.createElement("div");
+                categoryContainer.classList.add("content");
+                categoryContainer.id = category;
+
+                const tab = document.createElement("div");
+                tab.classList.add("tab");
+                tab.id = (category + "tab");
+                tab.innerText = category;
+                tabContainer.appendChild(tab);
+
             }
 
             const itemRow = document.createElement("div");
@@ -57,6 +75,8 @@ document.addEventListener("DOMContentLoaded", function () {
             itemImage.className = "col-md-2";
             const img = document.createElement("img");
             img.className = "item-image img-fluid";
+            img.height = "200";
+            img.width = "150";
             img.src = item.image;
             itemImage.appendChild(img);
 
@@ -145,8 +165,11 @@ document.addEventListener("DOMContentLoaded", function () {
             itemRow.appendChild(itemDetails);
             itemRow.appendChild(buttonContainer);
 
-            itemList.appendChild(itemRow);
+            categoryContainer.append(itemRow);
+            itemList.appendChild(categoryContainer);
         }
+
+        updateTabs();
     }
 
     // Function to toggle the status of an item (purchased or still active)
@@ -164,6 +187,48 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
             button.innerText = "Mark Active";
         }
+    }
+
+    function updateTabs() {
+        // Get all tab elements
+        
+        const tabs = document.querySelectorAll('.tab');
+
+        // Get all content elements
+        const contents = document.querySelectorAll('.content');
+
+        // Add a click event listener to each tab
+        tabs.forEach(tab => {
+
+            const randomColor = getRandomPastelColor();
+            tab.style.backgroundColor = randomColor;
+
+            tab.addEventListener('click', () => {
+                // Hide all content
+
+                contents.forEach(content => {
+                    content.style.display = 'none';
+                });
+
+                document.querySelectorAll('.tab').forEach(t => {
+                    t.classList.remove('active')
+                    t.classList.remove('inactive')
+                })
+
+                // Show the corresponding content
+                const categoryId = tab.id.replace('tab', '');
+                tab.classList.add('active');
+                const contentId = `${categoryId}`;
+                document.getElementById(contentId).style.display = 'block';
+                document.getElementById('fillRow').style.backgroundColor = randomColor;
+
+                document.querySelectorAll('.tab').forEach(t => {
+                    if (t.id !== tab.id) {
+                        t.classList.add('inactive');
+                    }
+                })
+            });
+        });
     }
 
     // Event listeners for "Active" and "Purchased" buttons
@@ -189,6 +254,7 @@ document.addEventListener("DOMContentLoaded", function () {
             dateAdded: getTodayDate(),
             savedAmount: parseFloat(document.getElementById("itemSavedAmount").value),
             active: true, // Initially set as active
+            category: document.getElementById("itemCategory").value
         };
 
         // Add the new item to the list
@@ -249,5 +315,112 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // used for groups
+    function setupAutocomplete() {
+        // Fetch data from the /getgroups endpoint
+        fetch('/getcategories')
+          .then((response) => response.json())
+          .then((data) => {
+
+            console.log(data);
+            // Get the input element for autocomplete
+            const inputElement = document.getElementById('itemCategory');
+    
+            // Initialize an array to store autocomplete suggestions
+            const suggestions = data.map((item) => item[0]);
+            // Set up autocomplete using the suggestions array
+            autocomplete(inputElement, suggestions);
+          })
+          .catch((error) => {
+            console.error('Error fetching data:', error);
+          });
+      }
+    
+      // Event listener for the "Add New Item" button
+      document.getElementById('addItemButton').addEventListener('click', setupAutocomplete);
+
+      function autocomplete(input, suggestions) {
+        // Create a new instance of the Autocomplete class
+        new Autocomplete(input, suggestions);
+      }
+
+      class Autocomplete {
+        constructor(input, suggestions) {
+          this.input = input;
+          this.suggestions = suggestions;
+          this.init();
+        }
+    
+        init() {
+          this.input.addEventListener('input', () => {
+            this.showSuggestions();
+          });
+        }
+    
+        showSuggestions() {
+
+            const inputValue = this.input.value.toLowerCase();
+            const filteredSuggestions = this.suggestions.filter((suggestion) => suggestion.toLowerCase().includes(inputValue));
+    
+            // Display the filtered suggestions
+            this.displaySuggestions(filteredSuggestions);
+        }
+    
+        displaySuggestions(suggestions) {
+          // Clear any previous suggestions
+          this.clearSuggestions();
+    
+          // Create a dropdown for suggestions
+          const suggestionDropdown = document.createElement('ul');
+          suggestionDropdown.classList.add('suggestion-dropdown');
+    
+          // Create list items for each suggestion
+          suggestions.forEach((suggestion) => {
+            const listItem = document.createElement('li');
+            listItem.textContent = suggestion;
+    
+            // Handle click on a suggestion
+            listItem.addEventListener('click', () => {
+              this.input.value = suggestion;
+              this.clearSuggestions();
+            });
+    
+            suggestionDropdown.appendChild(listItem);
+          });
+    
+          // Append the suggestion dropdown to the input's parent container
+          this.input.parentNode.appendChild(suggestionDropdown);
+        }
+    
+        clearSuggestions() {
+          const existingDropdown = this.input.parentNode.querySelector('.suggestion-dropdown');
+          if (existingDropdown) {
+            existingDropdown.remove();
+          }
+        }
+      }
+
+      function getRandomPastelColor() {
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+          color += letters[Math.floor(Math.random() * 16)];
+        }
+        // Convert the color to a pastel shade (lighten it)
+        return lightenColor(color, 30);
+      }
+      
+      // Function to lighten a color
+      function lightenColor(color, percent) {
+        const num = parseInt(color.slice(1), 16);
+        const amt = Math.round(2.55 * percent);
+        const R = (num >> 16) + amt;
+        const G = (num >> 8 & 255) + amt;
+        const B = (num & 255) + amt;
+        const newColor = `#${(1 << 24 | R << 16 | G << 8 | B).toString(16).slice(1)}`;
+        return newColor;
+      }
+
     loadItemsFromDB();
+
 });

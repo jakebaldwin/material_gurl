@@ -22,7 +22,8 @@ def save_item_to_db():
         price REAL,
         dateAdded DATE,
         savedAmount REAL,
-        active BOOLEAN
+        active BOOLEAN,
+        category TEXT
         );
         """
         # Execute the SQL command to create the table
@@ -30,8 +31,8 @@ def save_item_to_db():
 
         # Define your SQL INSERT query here
         insert_query = """
-            INSERT OR REPLACE INTO items (name, link, image, price, dateAdded, savedAmount, active)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO items (name, link, image, price, dateAdded, savedAmount, active, category)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         # Define the values as a tuple
@@ -42,7 +43,8 @@ def save_item_to_db():
             item['price'],
             item['dateAdded'],
             item['savedAmount'],
-            item['active']
+            item['active'],
+            item['category']
         )
 
         # Execute the SQL command with the parameterized query
@@ -71,7 +73,8 @@ def load_items_from_db():
                 'price': item[3],
                 'dateAdded': item[4],
                 'savedAmount': item[5],
-                'active': (item[6] == 1)
+                'active': (item[6] == 1),
+                'category': item[7]
             }
             toReturn.append(t)
         return jsonify(items=toReturn)
@@ -103,5 +106,20 @@ def remove_item_from_db():
         print(f"Error removing item: {e}")
         return jsonify(success=False)  # Error occurred
 
+@app.route('/getcategories', methods=['GET'])
+def getcategorys():
+    try:
+        conn = sqlite3.connect('./material_db.db')
+        cursor = conn.cursor()
+        # Define your SQL SELECT query here
+        query = "SELECT DISTINCT category FROM items"
+        cursor.execute(query)
+        items = cursor.fetchall()
+
+        return jsonify(items)
+    except Exception as e:
+        print(f"Error loading items: {e}")
+        return jsonify(items=[])
+
 if __name__ == '__main__':
-    app.run(port=3000)
+    app.run(port=3000, debug=True)

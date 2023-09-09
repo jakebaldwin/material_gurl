@@ -15,14 +15,7 @@ body{
   margin-top: -4px;
 }
 
-.item-row {
-  border-bottom: 1px solid #ccc;
-  padding: 10px;
-}
 
-.item-image {
-  max-width: 100px;
-}
 
 .progress {
   height: 20px;
@@ -38,4 +31,40 @@ progress::-webkit-progress-value { background: #FF6B6B; color:black; }
   justify-content: center;
   align-items: center;
   height: 100vh;
+}
+
+
+/* Style for the tabs */
+.tabs {
+  display: flex;
+}
+
+.tab {
+  cursor: pointer;
+  padding: 10px;
+}
+
+.tab.active {
+  opacity: 1;
+}
+
+.tab.inactive {
+  opacity: 0.5;
+}
+
+/* Style for the content containers */
+.content-container {
+  border-radius:10%;
+}
+
+.content {
+  display: none; /* Hide all content initially */
+}
+
+.topLevelContainer {
+  padding-bottom:5%;
+}
+
+#fillRow {
+  border-radius: 0%;
 }

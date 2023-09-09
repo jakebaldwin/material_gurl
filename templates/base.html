@@ -12,61 +12,68 @@
     </head>
     
     <body>
-        <div class="center">
-            <div class="container mt-4">
+            <div class="container">
                 <h2>Materialistic Goals</h2>
-                <div class="row">
-                    <div class="col">
-                        <!-- Button to toggle between "Active" and "Purchased" items -->
-                        <div class="btn-group mt-2">
-                            <button type="button" class="btn btn-primary active-button" data-active="true">Active</button>
-                            <button type="button" class="btn btn-primary active-button" data-active="false">Purchased</button>
+                <div class="row topLevelContainer">
+                        <div class="col">
+                            <!-- Button to toggle between "Active" and "Purchased" items -->
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-primary active-button" data-active="true">Active</button>
+                                <button type="button" class="btn btn-primary active-button" data-active="false">Purchased</button>
+                            </div>
                         </div>
-                    </div>
-                    
-                </div>
-                
-                <!-- Separate div for the third button (stacked below the first two) -->
-                <div class="row">
-                    <div class="col">
-                        <!-- Button to show/hide the "Add Item" form -->
-                        <button type="button" class="btn btn-success mt-3" id="addItemButton">Add New Item</button>
-                    </div>
-                </div>
+                        <div class="col">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-success mt-2" id="addItemButton">Add New Item</button>
+                            </div>
+                        </div>
+                        
+            
 
                 
 
-                
-                <!-- Form to add new items (hidden by default) -->
-                <form id="addItemForm" style="display: none;">
-                    <div class="form-group">
-                        <label for="itemName">Item Name:</label>
-                        <input type="text" class="form-control" id="itemName" required>
+                    <!-- Form to add new items (hidden by default) -->
+                    <form id="addItemForm" style="display: none;">
+                        <div class="form-group">
+                            <label for="itemCategory">Category:</label>
+                            <input type="text" class="form-control" id="itemCategory" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="itemName">Item Name:</label>
+                            <input type="text" class="form-control" id="itemName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="itemImage">Item Image URL:</label>
+                            <input type="text" class="form-control" id="itemImage" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="itemLink">Purchase Link:</label>
+                            <input type="text" class="form-control" id="itemLink" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="itemPrice">Price:</label>
+                            <input type="number" step="0.01" class="form-control" id="itemPrice" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="itemSavedAmount">Saved Amount:</label>
+                            <input type="number" step="0.01" class="form-control" id="itemSavedAmount" required>
+                        </div>            
+                        <button type="submit" class="btn btn-primary">Add Item</button>
+                    </form>
+                </div>
+                <div class="container tabsRow">
+                    <div id="tabContainer" class="tabs">
+                        <!-- Add more tabs as needed -->
                     </div>
-                    <div class="form-group">
-                        <label for="itemImage">Item Image URL:</label>
-                        <input type="text" class="form-control" id="itemImage" required>
+                </div>
+                <div class="container" id="fillRow">
+                    <div class="content-container" id="itemList">
+                        <!-- Items will be dynamically added here -->
                     </div>
-                    <div class="form-group">
-                        <label for="itemLink">Purchase Link:</label>
-                        <input type="text" class="form-control" id="itemLink" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="itemPrice">Price:</label>
-                        <input type="number" step="0.01" class="form-control" id="itemPrice" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="itemSavedAmount">Saved Amount:</label>
-                        <input type="number" step="0.01" class="form-control" id="itemSavedAmount" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Add Item</button>
-                </form>
-                
-                <!-- List of Items -->
-                <div id="itemList">
-                    <!-- Items will be dynamically added here -->
                 </div>
             </div>
+
+            
         </div>
 
     
