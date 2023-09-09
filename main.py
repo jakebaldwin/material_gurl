@@ -104,4 +104,4 @@ def remove_item_from_db():
         return jsonify(success=False)  # Error occurred
 
 if __name__ == '__main__':
-    app.run()
+    app.run(port=3000)
