@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
+from fpdf import FPDF
 import sqlite3
 
 app = Flask(__name__)
@@ -120,6 +121,47 @@ def getcategorys():
     except Exception as e:
         print(f"Error loading items: {e}")
         return jsonify(items=[])
+
+def create_pdf(items):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+
+    current_category = None
+    items.sort(key=lambda x: x['category'])  # Sort items by category
+
+    for item in items:
+        if item['category'] != current_category:
+            if current_category is not None:
+                pdf.add_page()  # Add a new page for each category
+            current_category = item['category']
+            pdf.set_font("Arial", 'B', size=16)
+            pdf.cell(200, 10, txt=f"Category: {current_category}", ln=True)
+            pdf.set_font("Arial", size=12)
+
+        pdf.cell(200, 10, txt=f"Name: {item['name']}", ln=True)
+        pdf.cell(200, 10, txt=f"Link: {item['link']}", ln=True)
+        pdf.cell(200, 10, txt=f"Image: {item['image']}", ln=True)
+        pdf.cell(200, 10, txt=f"Price: {item['price']}", ln=True)
+        pdf.cell(200, 10, txt=f"Date Added: {item['dateAdded']}", ln=True)
+        pdf.cell(200, 10, txt=f"Saved Amount: {item['savedAmount']}", ln=True)
+        pdf.ln(10)  # Add some space between items
+
+    pdf_file = "items.pdf"
+    pdf.output(pdf_file)
+    return pdf_file
+
+@app.route('/exportWants', methods=['GET'])
+def export_wants():
+    conn = sqlite3.connect('material_db.db')  # Replace with your database file path
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM items')
+    items = [dict(zip([column[0] for column in cursor.description], row)) for row in cursor.fetchall()]
+    conn.close()
+
+    pdf_file = create_pdf(items)
+
+    return jsonify({'success': True})
 
 if __name__ == '__main__':
     app.run(port=3000, debug=True)

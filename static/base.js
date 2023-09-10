@@ -75,8 +75,8 @@ document.addEventListener("DOMContentLoaded", function () {
             itemImage.className = "col-md-2";
             const img = document.createElement("img");
             img.className = "item-image img-fluid";
-            img.height = "200";
-            img.width = "150";
+            img.style.maxHeight = "200";
+            img.style.maxWidth = "200";
             img.src = item.image;
             itemImage.appendChild(img);
 
@@ -113,6 +113,7 @@ document.addEventListener("DOMContentLoaded", function () {
             // Button to move item (purchased or still active)
             const moveButton = document.createElement("button");
             moveButton.className = "btn btn-primary";
+            moveButton.classList.add('squareBtn');
             moveButton.addEventListener("click", () => toggleItemStatus(item));
             updateMoveButtonLabel(moveButton, item.active);
 
@@ -121,10 +122,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // Apply Bootstrap classes to the button container
             buttonContainer.classList.add("btn-group");
+            buttonContainer.classList.add("d-flex");
+            buttonContainer.classList.add("flex-column");
 
             // Create a red delete button
             const deleteButton = document.createElement("button");
             deleteButton.className = "btn btn-danger";
+            deleteButton.classList.add('squareBtn');
             deleteButton.innerText = "Delete";
             deleteButton.addEventListener("click", () => {
                 // Find the index of the item in the array
@@ -145,6 +149,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const updateButton = document.createElement("button");
             updateButton.className = "btn btn-info";
             updateButton.innerText = "Update Saved Amount";
+            updateButton.classList.add('squareBtn')
             updateButton.addEventListener("click", () => {
                 const newSavedAmount = parseFloat(prompt("Enter the new saved amount:"));
                 if (!isNaN(newSavedAmount)) {
@@ -420,6 +425,24 @@ document.addEventListener("DOMContentLoaded", function () {
         const newColor = `#${(1 << 24 | R << 16 | G << 8 | B).toString(16).slice(1)}`;
         return newColor;
       }
+
+    document.getElementById('export').addEventListener('click', exportWants);
+    
+    function exportWants() {
+        fetch('/exportWants')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Items exported to PDF!");
+            } else {
+                alert("Export failed.");
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+
+    }
 
     loadItemsFromDB();
 

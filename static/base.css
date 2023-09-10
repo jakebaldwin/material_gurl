@@ -42,6 +42,7 @@ progress::-webkit-progress-value { background: #FF6B6B; color:black; }
 .tab {
   cursor: pointer;
   padding: 10px;
+  margin-left: 2%;
 }
 
 .tab.active {
@@ -63,8 +64,21 @@ progress::-webkit-progress-value { background: #FF6B6B; color:black; }
 
 .topLevelContainer {
   padding-bottom:5%;
+  border-radius: 10%;
 }
 
 #fillRow {
-  border-radius: 0%;
+  border-radius: 3%;
+}
+
+.item-row {
+  padding: 10px;
+}
+
+.btn {
+  border-radius:5%;
+}
+
+.squareBtn {
+  border-radius: 0;
 }
